@@ -1,0 +1,50 @@
+function getRobotPositionsAfterTime(robotData, seconds, width, height) {
+    const robots = robotData.split('\n').map(line => {
+        const [position, velocity] = line.split(' v=');
+        const [px, py] = position.replace('p=', '').split(',').map(Number);
+        const [vx, vy] = velocity.split(',').map(Number);
+        return { px, py, vx, vy };
+    });
+
+    for (let i = 0; i < robots.length; i++) {
+        robots[i].px = (robots[i].px + robots[i].vx * seconds) % width;
+        robots[i].py = (robots[i].py + robots[i].vy * seconds) % height;
+        if (robots[i].px < 0) robots[i].px += width;
+        if (robots[i].py < 0) robots[i].py += height;
+    }
+
+    return robots;
+}
+
+function countRobotsInQuadrants(robotPositions, width, height) {
+    const middleX = Math.floor(width / 2);
+    const middleY = Math.floor(height / 2);
+    const quadrants = [0, 0, 0, 0];
+
+    for (const robot of robotPositions) {
+        if (robot.px === middleX || robot.py === middleY) continue;
+
+        if (robot.px < middleX) {
+            if (robot.py < middleY) quadrants[0]++;
+            else quadrants[2]++;
+        } else {
+            if (robot.py < middleY) quadrants[1]++;
+            else quadrants[3]++;
+        }
+    }
+
+    return quadrants;
+}
+
+const robotData = ``;
+
+const seconds = 100;
+const width = 101;
+const height = 103;
+
+const robotPositions = getRobotPositionsAfterTime(robotData, seconds, width, height);
+const quadrants = countRobotsInQuadrants(robotPositions, width, height);
+const safetyFactor = quadrants.reduce((product, count) => product * count, 1);
+
+console.log('Quadrants:', quadrants);
+console.log('Safety Factor:', safetyFactor);
