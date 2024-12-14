@@ -1,3 +1,8 @@
+     // Christmas tree pattern defined as a set of relative coordinates
+const christmasTreePattern = new Set([
+    '0,0', '1,1', '2,2', '1,3', '0,4', '-1,3', '-2,2', '-1,1'
+]);
+
 function getRobotPositionsAfterTime(robotData, seconds, width, height) {
     const robots = robotData.split('\n').map(line => {
         const [position, velocity] = line.split(' v=');
@@ -16,35 +21,43 @@ function getRobotPositionsAfterTime(robotData, seconds, width, height) {
     return robots;
 }
 
-function countRobotsInQuadrants(robotPositions, width, height) {
-    const middleX = Math.floor(width / 2);
-    const middleY = Math.floor(height / 2);
-    const quadrants = [0, 0, 0, 0];
+function checkChristmasTreePattern(robots, width, height) {
+    const positions = new Set(robots.map(r => `${r.px},${r.py}`));
 
-    for (const robot of robotPositions) {
-        if (robot.px === middleX || robot.py === middleY) continue;
+    for (const pos of positions) {
+        const [px, py] = pos.split(',').map(Number);
+        const matches = [...christmasTreePattern].every(coord => {
+            const [dx, dy] = coord.split(',').map(Number);
+            const newX = (px + dx + width) % width;
+            const newY = (py + dy + height) % height;
+            return positions.has(`${newX},${newY}`);
+        });
 
-        if (robot.px < middleX) {
-            if (robot.py < middleY) quadrants[0]++;
-            else quadrants[2]++;
-        } else {
-            if (robot.py < middleY) quadrants[1]++;
-            else quadrants[3]++;
+        if (matches) {
+            return true;
         }
     }
 
-    return quadrants;
+    return false;
 }
 
+function findFewestSecondsForPattern(robotData, width, height, maxSeconds = 10000) {
+    let seconds = 0;
+    while (seconds < maxSeconds) {
+        const robots = getRobotPositionsAfterTime(robotData, seconds, width, height);
+        if (checkChristmasTreePattern(robots, width, height)) {
+            return seconds;
+        }
+        seconds++;
+    }
+    return -1; // Return -1 if no pattern is found within maxSeconds
+}
+
+// Example usage
 const robotData = ``;
 
-const seconds = 100;
 const width = 101;
 const height = 103;
 
-const robotPositions = getRobotPositionsAfterTime(robotData, seconds, width, height);
-const quadrants = countRobotsInQuadrants(robotPositions, width, height);
-const safetyFactor = quadrants.reduce((product, count) => product * count, 1);
-
-console.log('Quadrants:', quadrants);
-console.log('Safety Factor:', safetyFactor);
+const fewestSeconds = findFewestSecondsForPattern(robotData, width, height);
+console.log('Fewest Seconds for Christmas Tree Pattern:', fewestSeconds);
